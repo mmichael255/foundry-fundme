@@ -18,17 +18,17 @@ contract FundMe {
     using PriceConverter for uint256;
 
     uint256 public constant minimumUsd = 5e18;
-    address[] public funders;
+    address[] private s_funders;
     mapping(address funder => uint256 amountFunded)
-        public addressToamountFunded;
+        public s_addressToamountFunded;
 
     address public immutable i_owner;
-    AggregatorV3Interface private priceFeed;
+    AggregatorV3Interface private s_priceFeed;
 
-    constructor(address s_priceFeed) {
+    constructor(address ss_priceFeed) {
         i_owner = msg.sender;
-        priceFeed = AggregatorV3Interface(
-            s_priceFeed //0x694AA1769357215DE4FAC081bf1f309aDC325306
+        s_priceFeed = AggregatorV3Interface(
+            ss_priceFeed //0x694AA1769357215DE4FAC081bf1f309aDC325306
         );
     }
 
@@ -36,23 +36,23 @@ contract FundMe {
         // Allow users to send $
         // Have a minimum $ sent
         require(
-            msg.value.getConversionRate(priceFeed) > minimumUsd,
+            msg.value.getConversionRate(s_priceFeed) > minimumUsd,
             "didnt send enough eth"
         );
-        funders.push(msg.sender);
-        addressToamountFunded[msg.sender] =
-            addressToamountFunded[msg.sender] +
+        s_funders.push(msg.sender);
+        s_addressToamountFunded[msg.sender] =
+            s_addressToamountFunded[msg.sender] +
             msg.value;
     }
 
     function withdraw() public onlyOwner {
         for (
             uint256 funderIndex = 0;
-            funderIndex < funders.length;
+            funderIndex < s_funders.length;
             funderIndex++
         ) {
-            addressToamountFunded[funders[funderIndex]] = 0;
-            funders = new address[](0);
+            s_addressToamountFunded[s_funders[funderIndex]] = 0;
+            s_funders = new address[](0);
 
             // //transfer throws erro (msg.sender is address type; cast to payable address type)
             // payable (msg.sender).transfer(address(this).balance);
@@ -84,7 +84,17 @@ contract FundMe {
     }
 
     function getVersion() public view returns (uint256) {
-        return priceFeed.version();
+        return s_priceFeed.version();
+    }
+
+    function getAddressToAmountFunded(
+        address fundingAddress
+    ) external view returns (uint256) {
+        return s_addressToamountFunded[fundingAddress];
+    }
+
+    function getFunder(uint256 index) external view returns (address) {
+        return s_funders[index];
     }
 
     //Enums
