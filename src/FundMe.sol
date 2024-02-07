@@ -22,7 +22,7 @@ contract FundMe {
     mapping(address funder => uint256 amountFunded)
         public s_addressToamountFunded;
 
-    address public immutable i_owner;
+    address private immutable i_owner;
     AggregatorV3Interface private s_priceFeed;
 
     constructor(address ss_priceFeed) {
@@ -53,17 +53,16 @@ contract FundMe {
         ) {
             s_addressToamountFunded[s_funders[funderIndex]] = 0;
             s_funders = new address[](0);
-
-            // //transfer throws erro (msg.sender is address type; cast to payable address type)
-            // payable (msg.sender).transfer(address(this).balance);
-            // //send
-            // bool sendSuccess = payable (msg.sender).send(address(this).balance);
-            // require(sendSuccess, "Send failed");
-            // //call
-            (bool callSuccess, bytes memory dataReturned) = payable(msg.sender)
-                .call{value: address(this).balance}("");
-            require(callSuccess, "call failed");
         }
+        // //transfer throws erro (msg.sender is address type; cast to payable address type)
+        // payable (msg.sender).transfer(address(this).balance);
+        // //send
+        // bool sendSuccess = payable (msg.sender).send(address(this).balance);
+        // require(sendSuccess, "Send failed");
+        // //call
+        (bool callSuccess, bytes memory dataReturned) = payable(msg.sender)
+            .call{value: address(this).balance}("");
+        require(callSuccess, "call failed");
     }
 
     modifier onlyOwner() {
@@ -95,6 +94,10 @@ contract FundMe {
 
     function getFunder(uint256 index) external view returns (address) {
         return s_funders[index];
+    }
+
+    function getOwner() public view returns (address) {
+        return i_owner;
     }
 
     //Enums

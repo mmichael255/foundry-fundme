@@ -23,11 +23,11 @@ contract FundMeTest is Test {
     }
 
     function testOwnerIsMsgSender() public {
-        console.log(fundme.i_owner());
+        console.log(fundme.getOwner());
 
         console.log(msg.sender);
         //assertEq(fundme.i_owner(), address(this));
-        assertEq(fundme.i_owner(), msg.sender);
+        assertEq(fundme.getOwner(), msg.sender);
     }
 
     function testGetVersion() public {
@@ -41,13 +41,74 @@ contract FundMeTest is Test {
         fundme.fund();
     }
 
-    function testFundUpdate() public {
+    function testFundUpdateAddressToAmountFunded() public {
         vm.prank(USER);
         fundme.fund{value: 1e18}();
         uint256 amount = fundme.getAddressToAmountFunded(USER);
         assertEq(amount, 1e18);
     }
 
+    function testGetFunder() public {
+        vm.prank(USER);
+        fundme.fund{value: 1e18}();
+        address funder = fundme.getFunder(0);
+        assertEq(funder, USER);
+    }
+
+    modifier funded() {
+        vm.prank(USER);
+        fundme.fund{value: 1e18}();
+        _;
+    }
+
+    function testWithdrawFail() public funded {
+        vm.prank(USER);
+        vm.expectRevert();
+        fundme.withdraw();
+    }
+
+    function testWithdrawSuccess() public funded {
+        uint256 beforeOwnerBalance = fundme.getOwner().balance;
+        uint256 beforeContractBalance = address(fundme).balance;
+        console.log(beforeOwnerBalance);
+        console.log(beforeContractBalance);
+
+        vm.prank(fundme.getOwner());
+        fundme.withdraw();
+
+        uint256 afterOwnerBalance = fundme.getOwner().balance;
+        uint256 afterContractBalance = address(fundme).balance;
+
+        console.log(afterOwnerBalance);
+        console.log(afterContractBalance);
+        assertEq(afterContractBalance, 0);
+        assertEq(afterOwnerBalance, beforeContractBalance + beforeOwnerBalance);
+    }
+
+    function testMultiWithdrawSuccess() public {
+        uint160 startIndex = 1;
+        uint160 endIndex = 10;
+
+        for (uint160 i = startIndex; i <= endIndex; i++) {
+            hoax(address(i), 1e18);
+            fundme.fund{value: 1e18}();
+        }
+        uint256 beforeOwnerBalance = fundme.getOwner().balance;
+        uint256 beforeContractBalance = address(fundme).balance;
+        console.log(beforeOwnerBalance);
+        console.log(beforeContractBalance);
+
+        vm.prank(fundme.getOwner());
+        fundme.withdraw();
+
+        uint256 afterOwnerBalance = fundme.getOwner().balance;
+        uint256 afterContractBalance = address(fundme).balance;
+
+        console.log(afterOwnerBalance);
+        console.log(afterContractBalance);
+        assertEq(afterContractBalance, 0);
+        assertEq(afterOwnerBalance, beforeContractBalance + beforeOwnerBalance);
+    }
     //what can we do to work with address outside our chain
     //Unit -testing a specific part of our code
     //Integration -testing our code work with other parts of code
