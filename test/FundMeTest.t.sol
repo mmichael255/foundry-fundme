@@ -98,8 +98,14 @@ contract FundMeTest is Test {
         console.log(beforeOwnerBalance);
         console.log(beforeContractBalance);
 
-        vm.prank(fundme.getOwner());
+        uint256 gasStart = gasleft();
+        vm.txGasPrice(100);
+        vm.startPrank(fundme.getOwner());
         fundme.withdraw();
+        vm.stopPrank();
+        uint256 gasEnd = gasleft();
+        uint256 gasSpend = (gasStart - gasEnd) * tx.gasprice;
+        console.log(gasSpend);
 
         uint256 afterOwnerBalance = fundme.getOwner().balance;
         uint256 afterContractBalance = address(fundme).balance;
