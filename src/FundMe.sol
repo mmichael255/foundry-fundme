@@ -65,6 +65,27 @@ contract FundMe {
         require(callSuccess, "call failed");
     }
 
+    function withdrawButCheaper() public onlyOwner {
+        uint256 fundersLength = s_funders.length;
+        for (
+            uint256 funderIndex = 0;
+            funderIndex < fundersLength;
+            funderIndex++
+        ) {
+            s_addressToamountFunded[s_funders[funderIndex]] = 0;
+        }
+        s_funders = new address[](0);
+        // //transfer throws erro (msg.sender is address type; cast to payable address type)
+        // payable (msg.sender).transfer(address(this).balance);
+        // //send
+        // bool sendSuccess = payable (msg.sender).send(address(this).balance);
+        // require(sendSuccess, "Send failed");
+        // //call
+        (bool callSuccess, bytes memory dataReturned) = payable(msg.sender)
+            .call{value: address(this).balance}("");
+        require(callSuccess, "call failed");
+    }
+
     modifier onlyOwner() {
         //require(msg.sender == i_owner);
         if (msg.sender != i_owner) {

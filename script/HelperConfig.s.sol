@@ -6,7 +6,7 @@ import {MockV3Aggregator} from "../test/mock/MockV3Aggregator.sol";
 
 contract HelperConfig is Script {
     uint8 public DECIMAL = 8;
-    int256 public INITIAL_PRICE = 20e8;
+    int256 public INITIAL_PRICE = 2e9;
     struct NetworkConfig {
         address PriceFeed;
     }
